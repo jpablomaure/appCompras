@@ -1,15 +1,15 @@
 name: Compilar Lista Compras Bigsys APK
 
-on:
-  workflow_dispatch:
+'on':
+  workflow_dispatch: {}
   push:
     paths:
       - 'ListaComprasBigsys_Proyecto_Android.zip'
-      - 'ListaComprasBigsys_Proyecto_Android.txt'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -20,36 +20,27 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Gradle
+      - name: Configurar Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Preparar proyecto desde ZIP
+      - name: Descomprimir proyecto Android
         shell: bash
         run: |
           set -e
           rm -rf build-src
           mkdir -p build-src
-
-          if [ -f ListaComprasBigsys_Proyecto_Android.zip ]; then
-            cp ListaComprasBigsys_Proyecto_Android.zip build-src/proyecto.zip
-          elif [ -f ListaComprasBigsys_Proyecto_Android.txt ]; then
-            cp ListaComprasBigsys_Proyecto_Android.txt build-src/proyecto.zip
-          else
-            echo 'No se encontró ListaComprasBigsys_Proyecto_Android.zip'
-            exit 1
-          fi
-
-          unzip -q build-src/proyecto.zip -d build-src
+          unzip -q ListaComprasBigsys_Proyecto_Android.zip -d build-src
           test -f build-src/ListaComprasBigsysAndroid/settings.gradle
           test -f build-src/ListaComprasBigsysAndroid/app/build.gradle
 
-      - name: Compilar APK debug
+      - name: Compilar APK
         working-directory: build-src/ListaComprasBigsysAndroid
         run: gradle assembleDebug --stacktrace
 
-      - name: Renombrar APK
+      - name: Preparar APK para descarga
+        shell: bash
         run: |
           cp build-src/ListaComprasBigsysAndroid/app/build/outputs/apk/debug/app-debug.apk ListaCompras-Bigsys.apk
 
